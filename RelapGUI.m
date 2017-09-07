@@ -147,8 +147,14 @@ function plotResults_Callback(hObject, eventdata, handles) %#ok<DEFNU>
     %get directory close to user wishes
     default_dir=get(handles.file_path,'String');
     %start plotting
-    plotter_mat(default_dir,0,0);
-    
+    tempDir=plotter_mat(default_dir,0,0);
+        
+    %update directory if changed
+%             default_dir=cell2mat(tempDir);
+    singPos=strfind(tempDir{1},'\');
+    default_dir=tempDir{1}(1:singPos(end));
+    handles.file_path.String=default_dir;
+        
     %update handles structure
     guidata(hObject, handles)
     
@@ -302,6 +308,15 @@ function sequence_Callback(hObject, eventdata, handles) %#ok<DEFNU>
         disp('Plotting files')
         %start plotting
         plotter_mat(default_dir,1,first);
+        
+        %update directory if changed
+        if first
+%             default_dir=cell2mat(tempDir);
+            singPos=strfind(tempDir{1},'\');
+            default_dir=tempDir{1}(1:singPos(end));
+            handles.file_path.String=default_dir;
+        end
+        
         disp('-------------------------------------------')
     end
     disp('Sequence finished')

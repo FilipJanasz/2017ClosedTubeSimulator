@@ -1,4 +1,4 @@
-function plotter_mat(default_dir,sequence,firstInSeq)
+function directory=plotter_mat(default_dir,sequence,firstInSeq)
 
     starting_column=3;  %for some reason sometimes needs to be 2, sometimes 3
 
@@ -87,18 +87,27 @@ function plotter_mat(default_dir,sequence,firstInSeq)
             pipe_unit_length(n_file)=nodalization{7,2}*1000;
 
             %create directories for plots if the don't exist
-            if exist(pathPlots{n_file},'dir')~=7
-                mkdir(pathPlots{n_file});  
+%             if exist(pathPlots{n_file},'dir')~=7
+%                 mkdir(pathPlots{n_file});  
+%             end
+%             if exist(pathPlots_secondary{n_file},'dir')~=7
+%                 mkdir(pathPlots_secondary{n_file});  
+%             end
+%             if exist(pathPlots_horz{n_file},'dir')~=7
+%                 mkdir(pathPlots_horz{n_file});  
+%             end        
+%             if exist(pathPlots_init{n_file},'dir')~=7
+%                 mkdir(pathPlots_init{n_file});  
+%             end
+           
+            %remove old plots if exist
+            if exist(pathPlots{n_file},'dir')==7
+                status=rmdir(pathPlots{n_file},'s');
             end
-            if exist(pathPlots_secondary{n_file},'dir')~=7
-                mkdir(pathPlots_secondary{n_file});  
-            end
-            if exist(pathPlots_horz{n_file},'dir')~=7
-                mkdir(pathPlots_horz{n_file});  
-            end        
-            if exist(pathPlots_init{n_file},'dir')~=7
-                mkdir(pathPlots_init{n_file});  
-            end
+            mkdir(pathPlots{n_file}); 
+            mkdir(pathPlots_secondary{n_file}); 
+            mkdir(pathPlots_horz{n_file});
+            mkdir(pathPlots_init{n_file}); 
 
             temp_data=load(path_readFile);
             
