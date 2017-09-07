@@ -326,7 +326,7 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
 
             %-------------------------------------------------------------------------------------------------
             %        PLOTTING COMMAND:  surf(Time,pipeLength,p{plot_counter,2})
-            %                           imagesc(Time,pipeLength,tempg{plot_counter,2}); colorbar;
+            %                           imagesc(ax,Time,pipeLength,tempg{plot_counter,2}); colorbar;
             %                           set(gca,'YDir','normal')
             %-------------------------------------------------------------------------------------------------
             
@@ -367,7 +367,7 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
 
             %-------------------------------------------------------------------------------------------------
             %        PLOTTING COMMAND:  surf(Time,pipeLength,p{plot_counter,2})
-            %                           imagesc(Time,pipeLength,tempg{plot_counter,2}); colorbar;
+            %                           imagesc(ax,Time,pipeLength,tempg{plot_counter,2}); colorbar;
             %                           set(gca,'YDir','normal')
             %-------------------------------------------------------------------------------------------------
             
@@ -420,8 +420,8 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
 %             figure(fx,'Visible','Off') XXXXXXXXXXXXXXXXXXXXX
             
             pipeLength=(10:pipe_unit_length(plot_counter):((parameter_size-1)*pipe_unit_length(plot_counter))+10);  %#ok<NASGU>
-%             command_plot=['imagesc(Time_mat_cell{plot_counter},pipeLength,',printed_parameter,'{plot_counter,2}); colorbar;'];
-            command_plot=['imagesc(',printed_parameter,'{plot_counter,2}); colorbar;'];
+%             command_plot=['imagesc(ax,Time_mat_cell{plot_counter},pipeLength,',printed_parameter,'{plot_counter,2}); colorbar;'];
+            command_plot=['imagesc(ax,',printed_parameter,'{plot_counter,2}); colorbar;'];
             eval(command_plot);
             xlabel('Time [s]')
             ylabel(printed_parameter)
@@ -444,7 +444,7 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
             line(ax,[x1_prim,x2_prim],[y1_prim_2,y1_prim_2],'Color',[1 1 1])    
     %-------------------------------------------------------------------------------------------------
     %        PLOTTING COMMAND:  surf(Time,pipeLength,p{plot_counter,2})
-    %                           imagesc(Time,pipeLength,tempg{plot_counter,2}); colorbar;
+    %                           imagesc(ax,Time,pipeLength,tempg{plot_counter,2}); colorbar;
     %                           set(gca,'YDir','normal')
     %-------------------------------------------------------------------------------------------------
             % print to file
@@ -589,8 +589,8 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
             parameter_size=eval(command_size);
 
             pipeLength=(10:pipe_unit_length(plot_counter):((parameter_size(1)-1)*pipe_unit_length(plot_counter))+10); %#ok<NASGU>
-%             command_plot=['imagesc(Time_mat_cell{plot_counter},pipeLength,',printed_parameter_secondary,'{plot_counter,2}); colorbar;'];
-            command_plot=['imagesc(',printed_parameter_secondary,'{plot_counter,2}); colorbar;'];
+%             command_plot=['imagesc(ax,Time_mat_cell{plot_counter},pipeLength,',printed_parameter_secondary,'{plot_counter,2}); colorbar;'];
+            command_plot=['imagesc(ax,',printed_parameter_secondary,'{plot_counter,2}); colorbar;'];
             eval(command_plot);
             xlabel('Time [s]')
             ylabel(printed_parameter_secondary)
@@ -598,7 +598,7 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
 
     %-------------------------------------------------------------------------------------------------
     %        PLOTTING COMMAND:  surf(Time,pipeLength,p{plot_counter,2})
-    %                           imagesc(Time,pipeLength,tempg{plot_counter,2}); colorbar;
+    %                           imagesc(ax,Time,pipeLength,tempg{plot_counter,2}); colorbar;
     %                           set(gca,'YDir','normal')
     %-------------------------------------------------------------------------------------------------
             % print to file
@@ -645,7 +645,7 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
                     end
                     last_n_iter=current_var(:,(end-last_n*horz_tube_amount(plot_counter)+1):end);
                     pipeLength=(10:pipe_unit_length(plot_counter):((parameter_size(1)-1)*pipe_unit_length(plot_counter))+10); %#ok<NASGU>
-                    imagesc(last_n_iter);
+                    imagesc(ax,last_n_iter);
                     colorbar;
 
                     %add vertical lines between the separate snapshots
@@ -665,7 +665,7 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
 
             %-------------------------------------------------------------------------------------------------
             %        PLOTTING COMMAND:  surf(Time,pipeLength,p{plot_counter,2})
-            %                           imagesc(Time,pipeLength,tempg{plot_counter,2}); colorbar;
+            %                           imagesc(ax,Time,pipeLength,tempg{plot_counter,2}); colorbar;
             %                           set(gca,'YDir','normal')
             %-------------------------------------------------------------------------------------------------
                     % print to file
