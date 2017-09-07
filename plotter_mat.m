@@ -120,6 +120,8 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
                         data(find([offendingvolumelist{:}]==113010000),:)=[];
                         offendingvolumelist=data(:,2);
                         data(find([offendingvolumelist{:}]==114000000),:)=[];
+                        offendingvolumelist=data(:,2);
+                        data(find([offendingvolumelist{:}]==117000000),:)=[];
                         % XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXYYYYYYYYYYYYYYYYZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
             
             %get name of the file without suffixes 
@@ -517,9 +519,6 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
                 mflowj111=mflowj{plot_counter,2}(6,:);
                 mflowj115=mflowj{plot_counter,2}(8,:);
                 mflowj116=mflowj{plot_counter,2}(9,:);
-                if nodalization{5,2}>1
-                    mflowj130=sum(mflowjHorzjun{plot_counter});
-                end
                 
 %                 set(0,'CurrentFigure',fx) % make sure current figure didn't change (happens when user clicks on GUI during execution of this)
                 hold(ax,'on')
@@ -528,8 +527,8 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
                 plot(ax,Time_mat_cell{plot_counter},mflowj116)
                 
                 if nodalization{5,2}>1
-                    mflowj130=sum(mflowjHorzjun{plot_counter,2});
-                    plot(ax,Time_mat_cell{plot_counter},mflowj130)
+                    mflowj130=-sum(mflowjHorzjun{plot_counter,2});
+                    plot(ax,Time_mat_cell{plot_counter},mflowj130) %minus because "to from" values in Relap deck
                     legend(ax,'mflowj 111','mflowj 115','mflowj 116','mflowj 130 (horz)')
                 else
                     legend(ax,'mflowj 111','mflowj 115','mflowj 116')
@@ -787,11 +786,13 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
 %         set(0,'CurrentFigure',fx) % make sure current figure didn't change (happens when user clicks on GUI during execution of this)
         hold(ax,'on')
         plot(ax,Time_mat_cell{mb},steam_evap_flow_boiler{mb})
-        plot(ax,Time_mat_cell{mb},steam_cond_flow_heater_empty{mb},'--')
+        plot(ax,Time_mat_cell{mb},-steam_cond_flow_heater_empty{mb},'--')
         plot(ax,Time_mat_cell{mb},-condflux{mb},'.-')
+        plot(ax,Time_mat_cell{mb},-(steam_cond_flow_heater_empty{mb}+condflux{mb}),'.')
         legend(ax,['Boiler evaporation flow: ',num2str(boilFinal),'kg/s'],...
             ['Empty heater cond flow: ',num2str(condEmptyFin),'kg/s'],...
             ['Tube condensation flow: ',num2str(condTubeFinal),'kg/s'],...
+            ['Condensation flow total: ',num2str(condEmptyFin+condTubeFinal),'kg/s'],...
             'Location','southoutside')
         xlabel(ax,'Time [s]')
         ylabel(ax,'Condensation mass flux [kg/s]')
@@ -809,10 +810,10 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
         deltaP=diff(mean(p{mb,2}));        
         vapgenIntegral=steam_evap_flow_boiler{mb}+steam_cond_flow_heater_empty{mb}+condflux{mb};
 %         set(0,'CurrentFigure',fx) % make sure current figure didn't change (happens when user clicks on GUI during execution of this)
-        plot(ax,deltaP)
+        plot(ax,Time_mat_cell{mb}(2:end),deltaP)
         ylabel(ax,'Pressure change [bar]')
         yyaxis (ax,'right')
-        plot(ax,vapgenIntegral)
+        plot(ax,Time_mat_cell{mb},vapgenIntegral)
         ylabel(ax,'Integral mass balance [ks/s]')
         xlabel(ax,'Time [s]')
         legend(ax,'Press diff','Integral mass balance')
@@ -850,7 +851,7 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
         coolant_side_area=pi*0.03*nodalization{7,2};
         
         heat_heater=sum(htrnr{mb,2}(1:nodalization{1,2},:)*heater_side_area);
-        heat_empty=sum(htrnr{mb,2}((nodalization{1,2}+1):(nodalization{1,2}+nodalization{2,2}),:)*heater_side_area);
+        heat_empty=-sum(htrnr{mb,2}((nodalization{1,2}+1):(nodalization{1,2}+nodalization{2,2}),:)*heater_side_area);
         heat_condenser=-sum(htrnr{mb,2}((nodalization{1,2}+nodalization{2,2}):end,:)*annulus_side_area);
         heat_coolant=sum(htrnr_secondary{mb,2}*coolant_side_area);
         
@@ -864,7 +865,8 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
         legend(ax,'Heat delivered','Empty heater','Tube condensation heat','Coolant heat pickup','Location','bestoutside')
         xlabel(ax,'Time [s]')
         ylabel(ax,'Heat [W]')
-%         ylim([0,1.1*mean(heat_heater)]);
+        yl=ylim;
+        ylim(ax,[0.05*yl(2),yl(2)]);
         set(ax,'YDir','normal')
         path_print=[pathPlots{mb},'\heat_balance_',current_file_name_char];
         saveas(fx,path_print,'png')
