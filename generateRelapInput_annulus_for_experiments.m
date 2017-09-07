@@ -18,6 +18,7 @@ function directory=generateRelapInput_annulus_for_experiments(inputs,input_type,
             Power=str2double(get(inputs.Power,'String')); % [W]
             %technicalities
             fileCounter=1;
+            directory={file_dir};
         else
             % AUTO INPUT FROM PROCESSED EXPERIMENTAL DATA XLS FILES
             
