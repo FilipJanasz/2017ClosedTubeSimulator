@@ -22,7 +22,7 @@ function varargout = RelapGUI(varargin)
 
     % Edit the above text to modify the response to help RelapGUI
 
-    % Last Modified by GUIDE v2.5 30-Aug-2017 13:06:02
+    % Last Modified by GUIDE v2.5 07-Sep-2017 18:06:54
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -105,9 +105,26 @@ function genInput_Callback(hObject, eventdata, handles) %#ok<DEFNU>
     handles.action_ramp=get(handles.rampBox,'String');
     handles.timestep_cntrl=get(handles.timestepcntrlBox,'String');
     handles.nodalizationType=get(handles.buttonSingletube,'Value');
+    %feedback
+    fbNo=handles.buttonFbno.Value;
+    fb121to110=handles.buttonFb121to110.Value;
+    if fbNo
+        handles.feedback=1;
+    elseif fb121to110
+        handles.feedback=2;
+    else
+        handles.feedback=3;
+    end
 
     %generate input decks
-    generateRelapInput_annulus_for_experiments(handles,input_type,default_dir)
+    tempDir=generateRelapInput_annulus_for_experiments(handles,input_type,default_dir);
+    
+    %update directory if changed
+%       default_dir=cell2mat(tempDir);
+%         singPos=strfind(tempDir{1},'\');
+%         default_dir=tempDir{1}(1:singPos(end));
+    default_dir=tempDir{1};
+    handles.file_path.String=default_dir;
     
     %update handles structure
     guidata(hObject, handles)
@@ -234,14 +251,26 @@ function sequence_Callback(hObject, eventdata, handles) %#ok<DEFNU>
         handles.action_ramp=get(handles.rampBox,'String');
         handles.timestep_cntrl=get(handles.timestepcntrlBox,'String');
         handles.nodalizationType=get(handles.buttonSingletube,'Value');
+        
+        %feedback line
+        fbNo=handles.buttonFbno.Value;
+        fb121to110=handles.buttonFb121to110.Value;
+        if fbNo
+            handles.feedback=1;
+        elseif fb121to110
+            handles.feedback=2;
+        else
+            handles.feedback=3;
+        end
     
         %generate input decks
         tempDir=generateRelapInput_annulus_for_experiments(handles,input_type,default_dir);
         
         %update directory if changed
 %       default_dir=cell2mat(tempDir);
-        singPos=strfind(tempDir{1},'\');
-        default_dir=tempDir{1}(1:singPos(end));
+%         singPos=strfind(tempDir{1},'\');
+%         default_dir=tempDir{1}(1:singPos(end));
+        default_dir=tempDir{1};
         handles.file_path.String=default_dir;
 
         disp('-------------------------------------------')
@@ -725,3 +754,31 @@ function rampBox_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes during object creation, after setting all properties.
+function uibuttongroup5_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to uibuttongroup5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes during object creation, after setting all properties.
+function buttonFbno_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to buttonFbno (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes during object creation, after setting all properties.
+function buttonFb121to110_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to buttonFb121to110 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes during object creation, after setting all properties.
+function buttonFb111to110_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to buttonFb111to110 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called

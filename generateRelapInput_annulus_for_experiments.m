@@ -93,6 +93,9 @@ function directory=generateRelapInput_annulus_for_experiments(inputs,input_type,
         heater_init_water_level=0.32;   % [m]
         heater_diam_inner=0.0837;       % [m]
         heater_diam_outer=0.0889;       % [m]
+        
+        %feedback line present and what type
+        feedback=inputs.feedback;
 
         %"nodalization" of geometry
         amount_of_heater_full=heater_init_water_level/unit_vertical_height;
@@ -595,39 +598,40 @@ function directory=generateRelapInput_annulus_for_experiments(inputs,input_type,
         fprintf(fid,'1121301  0.     0.     0.    %s \n', heater_empty_minus_one);  %************
 
     %% water feedback line - experimental feature
-            
-%         % water feedback line volume
-%         fprintf(fid,'*----------------------------------------------------------------\n');
-%         fprintf(fid,'* component 113 - water feedback line\n');
-%         fprintf(fid,'*        name   type\n');
-%         fprintf(fid,'1130000  h2ofeedb  snglvol\n');
-%         fprintf(fid,'*        area   length  volume  h-ang  v-ang  delz   rough  dhy  tlpvbfe\n');
-%         fprintf(fid,'1130101  %s     %s      0.      0.     90.    %s     0.     0    0110010\n',feedback_line_area,num2str(heater_init_water_level),num2str(heater_init_water_level));
-%         fprintf(fid,'*        ebt  pressure  stat_qual \n');
-%         fprintf(fid,'1130200  002  %s    1.     0.  \n',PrimaryPressure); %****************************************************
-% 
-%         % junction between water feedback and boiler tank at the bottom
-%         fprintf(fid,'*----------------------------------------------------------------\n');
-%         fprintf(fid,'* component 114 - junction boiler feedback BOTTOM\n');
-%         fprintf(fid,'*        name       type\n');
-%         fprintf(fid,'1140000  h2ofbjun  sngljun\n');
-%         fprintf(fid,'*        from       to         area  floss rloss  jefvcahs\n');         
-%         fprintf(fid,'1140101  113010001 110010001 %s    1.    1.     00100000\n', feedback_line_area); %,num2str(heater_empty_vol_no_last+2), cond_annulus_area);    %*************************************************************
-%         fprintf(fid,'*        junctionD  flooding  gasintercept slope\n');
-%         fprintf(fid,'1140110  0.         0.        1.           1.\n');
-%         fprintf(fid,'*        ctl  velflowf  velflowg     interface velocity\n');
-%         fprintf(fid,'1140201  0.   0.       0.            0.\n');             %******************
-%         
-%         % junction between water feedback and boiler tank at the top 
-%         fprintf(fid,'*----------------------------------------------------------------\n');
-%         fprintf(fid,'* component 117 - junction boiler feedback TOP\n');
-%         fprintf(fid,'*        name       type\n');
-%         fprintf(fid,'1170000  h2ofbjun  sngljun\n');
-%         fprintf(fid,'*        from       to         area  floss rloss  jefvcahs\n');         
-%         fprintf(fid,'1170101  %s 113010002 %s    1.    1.     00100000\n',num2str(heater_empty_vol_no+10001), feedback_line_area); 
-%         fprintf(fid,'1170110  0.         0.        1.           1.\n');
-%         fprintf(fid,'*        ctl  velflowf  velflowg     interface velocity\n');
-%         fprintf(fid,'1170201  0.   0.       0.            0.\n');             %******************
+        if feedback==3 
+            % water feedback line volume
+            fprintf(fid,'*----------------------------------------------------------------\n');
+            fprintf(fid,'* component 113 - water feedback line\n');
+            fprintf(fid,'*        name   type\n');
+            fprintf(fid,'1130000  h2ofeedb  snglvol\n');
+            fprintf(fid,'*        area   length  volume  h-ang  v-ang  delz   rough  dhy  tlpvbfe\n');
+            fprintf(fid,'1130101  %s     %s      0.      0.     90.    %s     0.     0    0110010\n',feedback_line_area,num2str(heater_init_water_level),num2str(heater_init_water_level));
+            fprintf(fid,'*        ebt  pressure  stat_qual \n');
+            fprintf(fid,'1130200  002  %s    1.     0.  \n',PrimaryPressure); %****************************************************
+
+            % junction between water feedback and boiler tank at the bottom
+            fprintf(fid,'*----------------------------------------------------------------\n');
+            fprintf(fid,'* component 114 - junction boiler feedback BOTTOM\n');
+            fprintf(fid,'*        name       type\n');
+            fprintf(fid,'1140000  h2ofbjun  sngljun\n');
+            fprintf(fid,'*        from       to         area  floss rloss  jefvcahs\n');         
+            fprintf(fid,'1140101  113010001 110010001 %s    1.    1.     00100000\n', feedback_line_area); %,num2str(heater_empty_vol_no_last+2), cond_annulus_area);    %*************************************************************
+            fprintf(fid,'*        junctionD  flooding  gasintercept slope\n');
+            fprintf(fid,'1140110  0.         0.        1.           1.\n');
+            fprintf(fid,'*        ctl  velflowf  velflowg     interface velocity\n');
+            fprintf(fid,'1140201  0.   0.       0.            0.\n');             %******************
+
+            % junction between water feedback and boiler tank at the top 
+            fprintf(fid,'*----------------------------------------------------------------\n');
+            fprintf(fid,'* component 117 - junction boiler feedback TOP\n');
+            fprintf(fid,'*        name       type\n');
+            fprintf(fid,'1170000  h2ofbjun  sngljun\n');
+            fprintf(fid,'*        from       to         area  floss rloss  jefvcahs\n');         
+            fprintf(fid,'1170101  %s 113010002 %s    1.    1.     00100000\n',num2str(heater_empty_vol_no+10001), feedback_line_area); 
+            fprintf(fid,'1170110  0.         0.        1.           1.\n');
+            fprintf(fid,'*        ctl  velflowf  velflowg     interface velocity\n');
+            fprintf(fid,'1170201  0.   0.       0.            0.\n');             %******************
+        end
         
         
     %% condensing tube
@@ -647,25 +651,27 @@ function directory=generateRelapInput_annulus_for_experiments(inputs,input_type,
         if ~nodalizationType  % if there is annulus
             %temp volume for water feedback
             
-            fprintf(fid,'* component 113 - temp water feedback\n');
-            fprintf(fid,'*        name   type\n');
-            fprintf(fid,'1130000  h2ofeedb  snglvol\n');
-            fprintf(fid,'*        area   length  volume  h-ang  v-ang  delz   rough  dhy  tlpvbfe\n');
-            fprintf(fid,'1130101  %s     %s      0.      0.     90.    %s     0.     0    0110010\n',cond_annulus_area,num2str(heater_tank_length),num2str(heater_tank_length));
-            fprintf(fid,'*        ebt  pressure  stat_qual \n');
-            fprintf(fid,'1130200  002  %s    1.     0.  \n',PrimaryPressure); %****************************************************
-            
-            % junction between water feedback and boiler tank
-            fprintf(fid,'*----------------------------------------------------------------\n');
-            fprintf(fid,'* component 114 - inlet junction to annulus\n');
-            fprintf(fid,'*        name       type\n');
-            fprintf(fid,'1140000  h2ofbjun  sngljun\n');
-            fprintf(fid,'*        from       to         area  floss rloss  jefvcahs\n');         
-            fprintf(fid,'1140101  113010001 110010001 %s    1.    1.     00100000\n', cond_annulus_area); %,num2str(heater_empty_vol_no_last+2), cond_annulus_area);    %*************************************************************
-            fprintf(fid,'*        junctionD  flooding  gasintercept slope\n');
-            fprintf(fid,'1140110  0.         0.        1.           1.\n');
-            fprintf(fid,'*        ctl  velflowf  velflowg     interface velocity\n');
-            fprintf(fid,'1140201  0.   0.       0.            0.\n');             %******************
+            if feedback==2
+                fprintf(fid,'* component 113 - temp water feedback\n');
+                fprintf(fid,'*        name   type\n');
+                fprintf(fid,'1130000  h2ofeedb  snglvol\n');
+                fprintf(fid,'*        area   length  volume  h-ang  v-ang  delz   rough  dhy  tlpvbfe\n');
+                fprintf(fid,'1130101  %s     %s      0.      0.     90.    %s     0.     0    0110010\n',cond_annulus_area,num2str(heater_tank_length),num2str(heater_tank_length));
+                fprintf(fid,'*        ebt  pressure  stat_qual \n');
+                fprintf(fid,'1130200  002  %s    1.     0.  \n',PrimaryPressure); %****************************************************
+
+                % junction between water feedback and boiler tank
+                fprintf(fid,'*----------------------------------------------------------------\n');
+                fprintf(fid,'* component 114 - inlet junction to annulus\n');
+                fprintf(fid,'*        name       type\n');
+                fprintf(fid,'1140000  h2ofbjun  sngljun\n');
+                fprintf(fid,'*        from       to         area  floss rloss  jefvcahs\n');         
+                fprintf(fid,'1140101  113010001 110010001 %s    1.    1.     00100000\n', cond_annulus_area); %,num2str(heater_empty_vol_no_last+2), cond_annulus_area);    %*************************************************************
+                fprintf(fid,'*        junctionD  flooding  gasintercept slope\n');
+                fprintf(fid,'1140110  0.         0.        1.           1.\n');
+                fprintf(fid,'*        ctl  velflowf  velflowg     interface velocity\n');
+                fprintf(fid,'1140201  0.   0.       0.            0.\n');             %******************
+            end
                             
                             
             % junction to annulus
@@ -674,8 +680,11 @@ function directory=generateRelapInput_annulus_for_experiments(inputs,input_type,
             fprintf(fid,'*        name       type\n');
             fprintf(fid,'1160000  inannu  sngljun\n');
             fprintf(fid,'*        from       to         area  floss rloss  jefvcahs\n');
-            fprintf(fid,'1160101  121010001 %s %s    1.    1.     00100000\n',num2str(113010002), cond_annulus_area); %,num2str(heater_empty_vol_no_last+2), cond_annulus_area);    %*************************************************************
-%             fprintf(fid,'1160101  121010001 %s %s    1.    1.     00100100\n',num2str(heater_empty_vol_no_last+2), cond_annulus_area);     %*********
+            if feedback==2
+                fprintf(fid,'1160101  121010001 %s %s    1.    1.     00100000\n',num2str(113010002), cond_annulus_area); %,num2str(heater_empty_vol_no_last+2), cond_annulus_area);    %*************************************************************
+            else            
+                fprintf(fid,'1160101  121010001 %s %s    1.    1.     00100100\n',num2str(heater_empty_vol_no_last+2), cond_annulus_area);     %*********
+            end
             fprintf(fid,'*        junctionD  flooding  gasintercept slope\n');
             fprintf(fid,'1160110  0.         0.        1.           1.\n');
             fprintf(fid,'*        ctl  velflowf  velflowg     interface velocity\n');
@@ -715,7 +724,7 @@ function directory=generateRelapInput_annulus_for_experiments(inputs,input_type,
 %                     fprintf(fid,'1202301  0.      0.                       %s \n', amount_of_tube_parts);
 %                     fprintf(fid,'*        rough   dhy                      vol.no.\n');
 %                     fprintf(fid,'1202401  0.      0.                       %s \n', amount_of_tube_parts);
-                % XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX^^^^^^^^^^^^^^^^
+%                 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX^^^^^^^^^^^^^^^^
         fprintf(fid,'*        tlpvbfe                          vol.no.\n');
         fprintf(fid,'1201001  0001000                          %s \n', amount_of_tube_parts); 
         fprintf(fid,'*        efvcahs                          jun.no.\n');
