@@ -622,9 +622,7 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
     disp('')
     disp('*********************************************')
     disp('Plotting primary side parameters - horizontal')
-    
-    horzExclude={'htvat','htrnr','mflowjHorzjun'};  %vars that should not be processed for horizontal plots
-    
+    \ho
     for parameter_counter=1:parametersAmount
     
         printed_parameter=parameters2process{parameter_counter};
@@ -634,7 +632,7 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
 %         plot_counter=1;
 %         for a=1:n_file
         for plot_counter=1:n_file
-            if horz_tube_amount(plot_counter)>1 && ~sum(strcmp(printed_parameter,horzExclude))
+            if horz_tube_amount(plot_counter)>1 && ~strcmp(printed_parameter,'htvat')  %htvat should not be processed
                 clear quala_avg 
                 clear vapgen_sum
 %                 if horz_tube_amount(plot_counter)>1            
