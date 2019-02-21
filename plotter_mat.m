@@ -1,7 +1,8 @@
 function directory=plotter_mat(default_dir,sequence,firstInSeq)
 
     starting_column=3;  %for some reason sometimes needs to be 2, sometimes 3
-
+    saveAsFig=1;
+    
     if ~sequence
     userChoice=menu('Choose your processing option','Point to a directory and process all .mat within it and all subdirectories', 'Point to a file');   
 
@@ -29,12 +30,15 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
 
     %define parameters to be plotted
 %     parameters2process={'vapgen','sattemp','tempf','tempg','p','quala','quals','qualhy','rho','floreg','velg','velf','htvat','voidg','htrnr','tmassv','mflowj','vvol'};
-    parameters2process={'tempf','tempg','p','vapgen','quala','quals','htvat','voidg','htrnr','tmassv','mflowj','vvol','velg','velf','rho','floreg'};
-%     parameters2process={'tempf','htrnr','vapgen','vvol'};
-    parameters2process_secondary={'tempf_secondary','p_secondary','vapgen_secondary','htvat_secondary','velf_secondary','floreg_secondary','rho_secondary'};
+    parameters2process={'tempf','tempg','p','vapgen','quala','quals','htvat','voidg','htrnr','tmassv','mflowj','vvol','velg','velf','rho','rhog','floreg'};
+    parameterUnits={['Liquid temperature [',char(176),'C]'],['Gas temperature [',char(176),'C]'],'Pressure [bar]','Vapour generation rate [kg/m^3]','NC quality','Static quality',['Wall temperature [',char(176),'C]'],'Void fraction'...
+    'Wall heat flux [W/m^2]','Mass in volume [kg]','Junction mass flow [kg/s]','Volume [m^3]','Gas velocity [m/s]','Liquid velocity [m/s]','Density [kg/m^3]','Gas density [kg/m^3]','Flow regime'};
+    %     parameters2process={'tempf','htrnr','vapgen','vvol'};
+    parameters2process_secondary={'tempf_secondary','p_secondary','vapgen_secondary','htvat_secondary','velf_secondary','rho_secondary','floreg_secondary'};
+    parameterUnitsSecondary={['Liquid temperature [',char(176),'C]'],'Pressure [bar]','Vapour generation rate [kg/m^3]',['Wall temperature [',char(176),'C]'],'Liquid velocity [m/s]','Density [kg/m^3]','Flow regime'};
     parametersAmount=numel(parameters2process);  
     parametersAmount_secondary=numel(parameters2process_secondary);
-
+    
 
     %n_file counts only correct mat files        
     n_file=0; 
@@ -87,6 +91,7 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
             heater_tank_height(n_file)=nodCurrent{1,2}+nodCurrent{2,2};
             condenser_start(n_file)= heater_tank_height(n_file)+nodCurrent{6,2};
             pipe_unit_length(n_file)=nodCurrent{7,2}*1000;
+            total_pipe_height=nodCurrent{1,2}+nodCurrent{2,2}+nodCurrent{3,2};
 
             %create directories for plots if the don't exist
 %             if exist(pathPlots{n_file},'dir')~=7
@@ -128,7 +133,7 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
             
             %get name of the file without suffixes 
             file_name=fileName(1:strfind(fileName,'_output_R')-1);
-            %print primary pipe graph
+            %% print primary pipe graph
             %different if parameters is for heat structure
             %BASED on nodalization.mat, figure out which values are for
             %primary side or secondary side values
@@ -165,8 +170,7 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
                 %get data for currently processed parameter                
                 parameter=parameters2process{o};
                 parameter_secondary=[parameter,'_secondary'];
-                parameter_horztube=[parameter,'_horztube'];
-
+                parameter_annulus=[parameter,'_annulus'];
                 loc=strcmp(parameter,data(:,1));
                 position=find(loc);
                 %verify that said parameters data is present
@@ -189,10 +193,10 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
                         secondary_flag=0;
                         paramValue_primarypipe=cell2mat(paramValue_all(1:tube_vol,starting_column:end));  
                         if nodCurrent{5,2}>1
-                            command_inter='paramValue_horztube_interleaved=reshape([';
-                            for horztube_counter=1:numel(horz_tub_pos)
-                                paramValue_horztube{horztube_counter}=cell2mat(paramValue_all(horz_tub_pos(horztube_counter):(horz_tub_pos(horztube_counter)+nodCurrent{3,2}-1),starting_column:end));
-                                command_inter=[command_inter,'paramValue_horztube{',num2str(horztube_counter),'};'];
+                            command_inter='paramValue_annulus_interleaved=reshape([';
+                            for annulus_counter=1:numel(horz_tub_pos)
+                                paramValue_annulus{annulus_counter}=cell2mat(paramValue_all(horz_tub_pos(annulus_counter):(horz_tub_pos(annulus_counter)+nodCurrent{3,2}-1),starting_column:end));
+                                command_inter=[command_inter,'paramValue_annulus{',num2str(annulus_counter),'};'];
                             end
 
                             command_inter=[command_inter,'],',num2str(nodCurrent{3,2}),',[]);'];   % 30 - two times the number of vertical volumes
@@ -202,23 +206,24 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
                         secondary_flag=0;
                         paramValue_primarypipe=cell2mat(paramValue_all(1:tube_vol,starting_column:end));  
                         if nodCurrent{5,2}>1
-                            command_inter='paramValue_horztube_interleaved=reshape([';
-                            for horztube_counter=1:numel(horz_tub_pos_mflowJ)-1  % -1, because last value in this vector points to horizontal junction
-                                paramValue_horztube{horztube_counter}=cell2mat(paramValue_all(horz_tub_pos_mflowJ(horztube_counter):(horz_tub_pos_mflowJ(horztube_counter)+nodCurrent{3,2}-1),starting_column:end));
-                                command_inter=[command_inter,'paramValue_horztube{',num2str(horztube_counter),'};']; 
+                            command_inter='paramValue_annulus_interleaved=reshape([';
+                            for annulus_counter=1:numel(horz_tub_pos_mflowJ)-1  % -1, because last value in this vector points to horizontal junction
+                                paramValue_annulus{annulus_counter}=cell2mat(paramValue_all(horz_tub_pos_mflowJ(annulus_counter):(horz_tub_pos_mflowJ(annulus_counter)+nodCurrent{3,2}-2),starting_column:end));
+                                command_inter=[command_inter,'paramValue_annulus{',num2str(annulus_counter),'};']; 
                             end
+                            %and also include values in horizonal junction 130xxx
                             mflowjHorzjunTEMP=cell2mat(paramValue_all(horz_tub_pos_mflowJ(end):horz_tub_pos_mflowJ(end)+nodCurrent{3,2}-1,starting_column:end));
-                            command_inter=[command_inter,'],',num2str(nodCurrent{3,2}),',[]);'];
+                            command_inter=[command_inter,'],',num2str(nodCurrent{3,2}-1),',[]);']; %-1 because in pipe elements there's one less junction than volumes
                             eval(command_inter);
                         end
                     else
                         paramValue_primarypipe=cell2mat(paramValue_all(1:tube_vol,starting_column:end));
                         paramValue_secondarypipe=cell2mat(paramValue_all(ss_start_vol:ss_end_vol,starting_column:end));                
                         if nodCurrent{5,2}>1
-                            command_inter='paramValue_horztube_interleaved=reshape([';
-                            for horztube_counter=1:numel(horz_tub_pos)
-                                    paramValue_horztube{horztube_counter}=cell2mat(paramValue_all(horz_tub_pos(horztube_counter):(horz_tub_pos(horztube_counter)+nodCurrent{3,2}-1),starting_column:end));
-                                    command_inter=[command_inter,'paramValue_horztube{',num2str(horztube_counter),'};'];
+                            command_inter='paramValue_annulus_interleaved=reshape([';
+                            for annulus_counter=1:numel(horz_tub_pos)
+                                    paramValue_annulus{annulus_counter}=cell2mat(paramValue_all(horz_tub_pos(annulus_counter):(horz_tub_pos(annulus_counter)+nodCurrent{3,2}-1),starting_column:end));
+                                    command_inter=[command_inter,'paramValue_annulus{',num2str(annulus_counter),'};'];
                             end
 
                             command_inter=[command_inter,'],',num2str(nodCurrent{3,2}),',[]);'];   % 30 - two times the number of vertical volumes
@@ -257,8 +262,8 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
                     
                     % save values for tube + annulus
                     if nodCurrent{5,2}>1 && horz_flag
-                        command5=[parameter_horztube,'{n_file,1}=file_name;']; 
-                        command6=[parameter_horztube,'{n_file,2}=paramValue_horztube_interleaved;']; %/sat_temp_inlet;');%'-sat_temp_inlet;');
+                        command5=[parameter_annulus,'{n_file,1}=file_name;']; 
+                        command6=[parameter_annulus,'{n_file,2}=paramValue_annulus_interleaved;']; %/sat_temp_inlet;');%'-sat_temp_inlet;');
                         eval(command5);
                         eval(command6); 
                         % if there's a horizontal junction, also include it in
@@ -267,6 +272,9 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
                             mflowjHorzjun{n_file,1}=file_name;
                             mflowjHorzjun{n_file,2}=mflowjHorzjunTEMP;
                             parameters2process{end+1}='mflowjHorzjun';
+                            if ~strcmp( parameterUnits{end},'M. flow column - annulus [kg/s]')
+                                parameterUnits{end+1}='M. flow column - annulus [kg/s]';
+                            end
                         end
                     end
                 else
@@ -332,6 +340,9 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
             %--------------------------
             % print to file
             saveas(fx,path_print,'png')
+            if saveAsFig
+                saveas(fx,path_print,'fig')
+            end
 
             cla(ax,'reset')
             
@@ -365,6 +376,9 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
             %--------------------------
             % print to file
             saveas(fx,path_print,'png')
+            if saveAsFig
+                saveas(fx,path_print,'fig')
+            end
 
             cla(ax,'reset')
             
@@ -393,19 +407,19 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
         disp(['Plotting ',printed_parameter])
     
         %plotting loop, goes through all files
-        for plot_counter=1:n_file
+        for plotCntr=1:n_file
             %some parameters are not filled for single tubes, this is a
             %workaround to allow for those files to be processed too
-            testCommand=[printed_parameter,'{plot_counter,2}'];
+            testCommand=[printed_parameter,'{plotCntr,2}'];
             
             if ~ isempty(eval(testCommand))
-                clear p_avg                       
+                clear p_avg                 
 
                 colormap(fx,jet)
-                current_file_name=file_list_plot(plot_counter);
+                current_file_name=file_list_plot(plotCntr);
                 current_file_name_char=current_file_name{1}(1:end);
-                path_print=[pathPlots{plot_counter},'\',printed_parameter,'_',current_file_name_char];
-                command_size=['numel(',printed_parameter,'{plot_counter,2})'];
+                path_print=[pathPlots{plotCntr},'\',printed_parameter,'_',current_file_name_char];
+                command_size=['numel(',printed_parameter,'{plotCntr,2})'];
                 parameter_size=eval(command_size);
 
     %             %update wait bar and update text
@@ -417,26 +431,33 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
     % %             fx.Visible='off'; %makes axes invisible
     %             figure(fx,'Visible','Off') XXXXXXXXXXXXXXXXXXXXX
 
-                pipeLength=(10:pipe_unit_length(plot_counter):((parameter_size-1)*pipe_unit_length(plot_counter))+10);  %#ok<NASGU>
-    %             command_plot=['imagesc(ax,Time_mat_cell{plot_counter},pipeLength,',printed_parameter,'{plot_counter,2}); colorbar(ax);'];
-                command_plot=['imagesc(ax,',printed_parameter,'{plot_counter,2}); colorbar(ax);'];
+                pipeLength=(10:pipe_unit_length(plotCntr):((parameter_size-1)*pipe_unit_length(plotCntr))+10);  %#ok<NASGU>
+    %             command_plot=['imagesc(ax,Time_mat_cell{plotCntr},pipeLength,',printed_parameter,'{plotCntr,2}); colorbar(ax);'];
+                command_plot=['imagesc(ax,',printed_parameter,'{plotCntr,2}); colorbar(ax);'];
                 eval(command_plot);
                 xlabel(ax,'Time [s]')
-                ylabel(ax,printed_parameter)
+                ylabel(ax,'Height [mm]')
+                title(ax,parameterUnits(parameter_counter))
                 set(ax,'YDir','normal')
 
                 %fix time axis
                 set(ax,'XTickMode','manual')
                 Xtick_fixed=get(ax,'Xtick')*(Time_mat(end-1)-Time_mat(end-2));
                 set(ax,'XTickLabels',Xtick_fixed);
-
+                
+                %fix Y axis (geometry)
+                set(ax,'YTickMode','manual')
+                Ytick_fixed=get(ax,'Ytick')*pipe_unit_length(plotCntr);
+                set(ax,'YTickLabels',Ytick_fixed);
+                
+                %add extra lines
                 hold(ax,'on')
                 x1_prim=-0.5;
-                x2_prim=Time_mat_cell{plot_counter}(end);
-                y1_prim=heater_tank_height(plot_counter)*pipe_unit_length(plot_counter);
+                x2_prim=Time_mat_cell{plotCntr}(end);
+                y1_prim=heater_tank_height(plotCntr)*pipe_unit_length(plotCntr);
     %             y2_prim=y1_prim;
 
-                y1_prim_2=condenser_start(plot_counter)*pipe_unit_length(plot_counter);
+                y1_prim_2=condenser_start(plotCntr)*pipe_unit_length(plotCntr);
     %             y2_prim_2=y1_prim_2;
 
                 line(ax,[x1_prim,x2_prim],[y1_prim,y1_prim],'Color',[1 1 1])    
@@ -445,39 +466,65 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
                 %--------------------------
                 % print to file and clean
                 saveas(fx,path_print,'png')
+                if saveAsFig
+                    saveas(fx,path_print,'fig')
+                end
                 cla(ax,'reset')
 
 
                 %--------------------------
                 % additional mass balance only for primary side
                 if strcmp(printed_parameter,'tmassv')
-                    tmassv_sum=sum(tmassv{plot_counter,2});
+                    tmassv_sum=sum(tmassv{plotCntr,2});
 
-                    plot(ax,Time_mat_cell{plot_counter},tmassv_sum)
+                    plot(ax,Time_mat_cell{plotCntr},tmassv_sum)
                     xlabel(ax,'Time [s]')
                     ylabel(ax,'Primary side total mass [kg]')
                     set(ax,'YDir','normal')
-                    path_print=[pathPlots{plot_counter},'\tmassv_sum_',current_file_name_char];
+                    path_print=[pathPlots{plotCntr},'\tmassv_sum_',current_file_name_char];
                     saveas(fx,path_print,'png')
+                    if saveAsFig
+                        saveas(fx,path_print,'fig')
+                    end
 
                     cla(ax,'reset')
-
+                    
+                    %store for matlab
+                    expCmpExt(plotCntr).tmassv.var=tmassv_sum;  
+                    if numel(tmassv_sum)>10
+                        expCmpExt(plotCntr).tmassv.value=mean(tmassv_sum(end-10:end));
+                    else
+                        expCmpExt(plotCntr).tmassv.value=mean(tmassv_sum);
+                    end
+                    
                 %--------------------------
                 % average p
                 elseif strcmp(printed_parameter,'p')
-                    p_amount=size(p{plot_counter,2});
+                    p_amount=size(p{plotCntr,2});
                     for p_counter=1:p_amount(2)
-                        p_avg(p_counter)=sum(p{plot_counter,2}(:,p_counter))/p_amount(1);
+                        p_avg(p_counter)=sum(p{plotCntr,2}(:,p_counter))/p_amount(1);
                     end
 
-                    plot(ax,Time_mat_cell{plot_counter},p_avg)
+                    plot(ax,Time_mat_cell{plotCntr},p_avg)
                     xlabel(ax,'Time [s]')
                     ylabel(ax,'Primary side avg press [Pa]')
                     set(ax,'YDir','normal')
-                    path_print=[pathPlots{plot_counter},'\press_avg_',current_file_name_char];
+                    path_print=[pathPlots{plotCntr},'\press_avg_',current_file_name_char];
                     saveas(fx,path_print,'png')
+                    if saveAsFig
+                        saveas(fx,path_print,'fig')
+                    end
 
                     cla(ax,'reset')
+                    
+                    %store for matlab
+                    expCmpExt(plotCntr).p_avg.var=p_avg./10^5;
+                    if numel(p_avg)>10
+                        expCmpExt(plotCntr).p_avg.value=mean(p_avg(end-10:end))/10^5;
+                    else
+                        expCmpExt(plotCntr).p_avg.value=mean(p_avg)/10^5;
+                    end
+                    
 
                 %--------------------------
                 %vapour generation / condensation estimation
@@ -485,82 +532,101 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
 
                     %--------------------------
                     %evaporation in boiler tank
-                    steam_evap_rate_boiler=vapgen{plot_counter,2}(1:nodStorage{plot_counter}{1,2},:);   %in the boiler lowest volume kg/(s*m3)
+                    steam_evap_rate_boiler=vapgen{plotCntr,2}(1:nodStorage{plotCntr}{1,2},:);   %in the boiler lowest volume kg/(s*m3)
 
                     %multiply by volume to get steam mass flow
                     % 4.4018e-4 is volume of evaporation place in m3
                     try
-                        heater_vol=vvol{plot_counter,2}(1,1);
+                        heater_vol=vvol{plotCntr,2}(1,1);
                     catch
                         heater_vol=4.4018e-4;
                     end
-                    steam_evap_flow_boiler{plot_counter}=sum(steam_evap_rate_boiler.*heater_vol);
-                    steam_evap_heat=steam_evap_flow_boiler{plot_counter}*2100000; %2100000 J/kg  - condensation Power - rougly only
+                    steam_evap_flow_boiler{plotCntr}=sum(steam_evap_rate_boiler.*heater_vol);
+                    steam_evap_heat=steam_evap_flow_boiler{plotCntr}*2100000; %2100000 J/kg  - condensation Power - rougly only
 
                     %--------------------------
                     %condensation in empty volume in heater tank
-                    steam_cond_rate_heater_empty=vapgen{plot_counter,2}(nodStorage{plot_counter}{1,2}+1:nodStorage{plot_counter}{1,2}+nodStorage{plot_counter}{2,2},:);   %in the boiler lowest volume kg/(s*m3)                
+                    steam_cond_rate_heater_empty=vapgen{plotCntr,2}(nodStorage{plotCntr}{1,2}+1:nodStorage{plotCntr}{1,2}+nodStorage{plotCntr}{2,2},:);   %in the boiler lowest volume kg/(s*m3)                
                     %multiply by volume to get steam mass flow
                     % 4.4018e-4 is volume of evaporation place in m3
-                    steam_cond_flow_heater_empty{plot_counter}=sum(steam_cond_rate_heater_empty.*heater_vol);
+                    steam_cond_flow_heater_empty{plotCntr}=sum(steam_cond_rate_heater_empty.*heater_vol);
 
                     %--------------------------
                     %if domain is single condensertube, also store tube condensation here rater
                     %then in horizontal loop
-                    if nodStorage{plot_counter}{5,2}==1
-                        condflux{plot_counter}=sum(vapgen{plot_counter,2}(nodStorage{plot_counter}{1,2}+nodStorage{plot_counter}{2,2}+1:end,:));
+                    if nodStorage{plotCntr}{5,2}==1
+                        condflux{plotCntr}=sum(vapgen{plotCntr,2}(nodStorage{plotCntr}{1,2}+nodStorage{plotCntr}{2,2}+1:end,:));
                     end
 
                     %--------------------------
                     %plot
-                    plot(ax,Time_mat_cell{plot_counter},steam_evap_heat,'.')
+                    plot(ax,Time_mat_cell{plotCntr},steam_evap_heat,'.')
                     xlabel(ax,'Time [s]')
                     ylabel(ax,'Evaporation power [W]')
                     set(ax,'YDir','normal')
-                    path_print=[pathPlots{plot_counter},'\evap_power_',current_file_name_char];
+                    path_print=[pathPlots{plotCntr},'\evap_power_',current_file_name_char];
                     saveas(fx,path_print,'png')
+                    if saveAsFig
+                        saveas(fx,path_print,'fig')
+                    end
 
-                    cla(ax,'reset')                
+                    cla(ax,'reset')  
+                    
+                    %store for matlab
+                    expCmpExt(plotCntr).evapHeat.var=steam_evap_heat;
+                    if numel(steam_evap_heat)>10
+                        expCmpExt(plotCntr).evapHeat.value=mean(steam_evap_heat(end-10:end));
+                    else
+                        expCmpExt(plotCntr).evapHeat.value=mean(steam_evap_heat);
+                    end
 
 
                 elseif strcmp(printed_parameter,'mflowj')
-                    mflowj111=mflowj{plot_counter,2}(6,:);
-                    mflowj115=mflowj{plot_counter,2}(8,:);
-                    mflowj116=mflowj{plot_counter,2}(9,:);
-
+                    mflowj111=mflowj{plotCntr,2}(nodStorage{plotCntr}{1,2},:);  %+1 because above bottom boiler and -1 because junctions
+                    mflowj115=mflowj{plotCntr,2}(nodStorage{plotCntr}{1,2}+nodStorage{plotCntr}{2,2},:);   % same here but +2 -2
+                    
                     hold(ax,'on')
-                    plot(ax,Time_mat_cell{plot_counter},mflowj111)
-                    plot(ax,Time_mat_cell{plot_counter},mflowj115)
-                    plot(ax,Time_mat_cell{plot_counter},mflowj116)
-
-                    if nodStorage{plot_counter}{5,2}>1
-                        mflowj130=sum(mflowjHorzjun{plot_counter,2});
-                        plot(ax,Time_mat_cell{plot_counter},mflowj130) %minus because "to from" values in Relap deck
+                    plot(ax,Time_mat_cell{plotCntr},mflowj111)
+                    plot(ax,Time_mat_cell{plotCntr},mflowj115,'--')
+                    
+                    
+                    
+                    if nodStorage{plotCntr}{5,2}>1
+                        mflowj116=mflowj{plotCntr,2}(nodStorage{plotCntr}{1,2}+nodStorage{plotCntr}{2,2}+1,:); % one above 115
+                        mflowj130=sum(mflowjHorzjun{plotCntr,2});
+                        mflowTubeTotal=mflowj115(end)+mflowj116(end);
+                        plot(ax,Time_mat_cell{plotCntr},mflowj116,'.')
+                        plot(ax,Time_mat_cell{plotCntr},mflowj130,'-.') %minus because "to from" values in Relap deck   
                         legend(ax,'mflowj 111','mflowj 115','mflowj 116','mflowj 130 (horz)')
+                        
                     else
+                        mflowTubeTotal=mflowj115(end);
                         legend(ax,'mflowj 111','mflowj 115','mflowj 116')
                     end
-
+                    
+                    title(ax,['Final integral condenser flow: ',num2str(mflowTubeTotal)])
                     xlabel(ax,'Time [s]')
                     ylabel(ax,'Mflow [kg/s]')
                     set(ax,'YDir','normal')
-                    path_print=[pathPlots{plot_counter},'\mflowj_time_',current_file_name_char];
+                    path_print=[pathPlots{plotCntr},'\mflowj_time_',current_file_name_char];
                     saveas(fx,path_print,'png')
+                    if saveAsFig
+                        saveas(fx,path_print,'fig')
+                    end
 
                     cla(ax,'reset')
-
 
                 end
                 %plot initial conditions
 
-                current_file_name=file_list_plot(plot_counter);
+                current_file_name=file_list_plot(plotCntr);
                 current_file_name_char=current_file_name{1}(1:end);
-                path_print_init=[pathPlots_init{plot_counter},'\',printed_parameter,'_',current_file_name_char];
-                command_size=['size(',printed_parameter,'{plot_counter,2})'];
+                path_print_init=[pathPlots_init{plotCntr},'\',printed_parameter,'_',current_file_name_char];
+                command_size=['size(',printed_parameter,'{plotCntr,2})'];
                 parameter_size=eval(command_size);
 
-                pipeLength=(10:pipe_unit_length(plot_counter):((parameter_size(1)-1)*pipe_unit_length(plot_counter))+10); %#ok<NASGU>
-                command_plot=['plot(',printed_parameter,'{plot_counter,2}(:,1),pipeLength);'];
+                pipeLength=(10:pipe_unit_length(plotCntr):((parameter_size(1)-1)*pipe_unit_length(plotCntr))+10); %#ok<NASGU>
+                command_plot=['plot(',printed_parameter,'{plotCntr,2}(:,1),pipeLength);'];
                 eval(command_plot);
                 ylabel('Tube length [mm]')
                 xlabel(printed_parameter)
@@ -582,31 +648,43 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
     disp('Plotting secondary side parameters')
 %     axes(fx)
 %     fx.Visible='off'; %make axes invisible
-    for parameter_counter_secondary=1:parametersAmount_secondary
+    for parameterCtrSecond=1:parametersAmount_secondary
     
-        printed_parameter_secondary=parameters2process_secondary{parameter_counter_secondary};
+        printed_parameter_secondary=parameters2process_secondary{parameterCtrSecond};
         disp(['Plotting ',printed_parameter_secondary])
         %plotting loop, goes through all files
-        for plot_counter=1:n_file
+        for plotCntr=1:n_file
             
             colormap(fx,jet)
-            current_file_name=file_list_plot(plot_counter);
+            current_file_name=file_list_plot(plotCntr);
             current_file_name_char=current_file_name{1}(1:end);
-            path_print_secondary=[pathPlots_secondary{plot_counter},'\',printed_parameter_secondary,'_',current_file_name_char];
-            command_size=['size(',printed_parameter_secondary,'{plot_counter,2})'];
+            path_print_secondary=[pathPlots_secondary{plotCntr},'\',printed_parameter_secondary,'_',current_file_name_char];
+            command_size=['size(',printed_parameter_secondary,'{plotCntr,2})'];
             parameter_size=eval(command_size);
 
-            pipeLength=(10:pipe_unit_length(plot_counter):((parameter_size(1)-1)*pipe_unit_length(plot_counter))+10); %#ok<NASGU>
-%             command_plot=['imagesc(ax,Time_mat_cell{plot_counter},pipeLength,',printed_parameter_secondary,'{plot_counter,2}); colorbar(ax);'];
-            command_plot=['imagesc(ax,',printed_parameter_secondary,'{plot_counter,2}); colorbar(ax);'];
+            pipeLength=(10:pipe_unit_length(plotCntr):((parameter_size(1)-1)*pipe_unit_length(plotCntr))+10); %#ok<NASGU>
+%             command_plot=['imagesc(ax,Time_mat_cell{plotCntr},pipeLength,',printed_parameter_secondary,'{plotCntr,2}); colorbar(ax);'];
+            command_plot=['imagesc(ax,',printed_parameter_secondary,'{plotCntr,2}); colorbar(ax);'];
             eval(command_plot);
             xlabel(ax,'Time [s]')
-            ylabel(ax,printed_parameter_secondary)
+            ylabel(ax,'Height [mm]')
+            title(ax,parameterUnitsSecondary(parameterCtrSecond))
             set(ax,'YDir','normal')
 
+            %fix time axis
+            set(ax,'XTickMode','manual')
+            Xtick_fixed=get(ax,'Xtick')*(Time_mat(end-1)-Time_mat(end-2));
+            set(ax,'XTickLabels',Xtick_fixed);
+                
+            %fix Y axis (geometry)
+            set(ax,'YTickMode','manual')
+            Ytick_fixed=get(ax,'Ytick')*pipe_unit_length(plotCntr);
+            set(ax,'YTickLabels',Ytick_fixed);
+                
+
     %-------------------------------------------------------------------------------------------------
-    %        PLOTTING COMMAND:  surf(Time,pipeLength,p{plot_counter,2})
-    %                           imagesc(ax,Time,pipeLength,tempg{plot_counter,2}); colorbar(ax);
+    %        PLOTTING COMMAND:  surf(Time,pipeLength,p{plotCntr,2})
+    %                           imagesc(ax,Time,pipeLength,tempg{plotCntr,2}); colorbar(ax);
     %                           set(ax,'YDir','normal')
     %-------------------------------------------------------------------------------------------------
             % print to file
@@ -631,24 +709,23 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
         disp(['Plotting ',printed_parameter])
         
         %plotting loop, goes through all files
-%         plot_counter=1;
+%         plotCntr=1;
 %         for a=1:n_file
-        for plot_counter=1:n_file
-            if horz_tube_amount(plot_counter)>1 && ~sum(strcmp(printed_parameter,horzExclude))
+        for plotCntr=1:n_file
+            if horz_tube_amount(plotCntr)>1 && ~sum(strcmp(printed_parameter,horzExclude))
                 clear quala_avg 
                 clear vapgen_sum
-%                 if horz_tube_amount(plot_counter)>1            
-%                     try
-%                 colormap(fx,jet)
-                current_file_name=file_list_plot(plot_counter);
+                clear rhog_avg
+
+                current_file_name=file_list_plot(plotCntr);
                 current_file_name_char=current_file_name{1}(1:end);
-                path_print_horz=[pathPlots_horz{plot_counter},'\',printed_parameter,'_',current_file_name_char];
-                command_size=['size(',printed_parameter,'_horztube{plot_counter,2})'];
+                path_print_horz=[pathPlots_horz{plotCntr},'\',printed_parameter,'_',current_file_name_char];
+                command_size=['size(',printed_parameter,'_annulus{plotCntr,2})'];
                 parameter_size=eval(command_size);
 
                 %plot last n iteration steps
                 last_n=5;  %XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX                
-                current_var_command=[printed_parameter,'_horztube{plot_counter,2}'];
+                current_var_command=[printed_parameter,'_annulus{plotCntr,2}'];
                 current_var=eval(current_var_command);
                 %verify there's enough data for last_n iteration to be
                 %displayed
@@ -656,8 +733,8 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
                 if last_n>dataArrWidth/2
                     last_n=dataArrWidth/2;
                 end
-                last_n_iter=current_var(:,(end-last_n*horz_tube_amount(plot_counter)+1):end);
-                pipeLength=(10:pipe_unit_length(plot_counter):((parameter_size(1)-1)*pipe_unit_length(plot_counter))+10); %#ok<NASGU>
+                last_n_iter=current_var(:,(end-last_n*horz_tube_amount(plotCntr)+1):end);
+                pipeLength=(10:pipe_unit_length(plotCntr):((parameter_size(1)-1)*pipe_unit_length(plotCntr))+10); %#ok<NASGU>
                 imagesc(ax,last_n_iter);
                 colorbar(ax);
 
@@ -666,19 +743,28 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
                 y1=0;
                 y2=parameter_size(1)+0.5;
 
-                for line_ctr=1:last_n %(parameter_size(2)/horz_tube_amount(plot_counter))
-                    x1=horz_tube_amount(plot_counter)*line_ctr+0.5;
+                for line_ctr=1:last_n %(parameter_size(2)/horz_tube_amount(plotCntr))
+                    x1=horz_tube_amount(plotCntr)*line_ctr+0.5;
                     line(ax,[x1,x1],[y1,y2],'Color',[1 1 1])
                 end
 
                 %add labeling
                 xlabel(ax,'Time [s]')
-                ylabel(ax,printed_parameter)
+                set(ax,'YDir','normal')               
+                ylabel(ax,'Height [mm]')
+                title(ax,parameterUnits(parameter_counter))
                 set(ax,'YDir','normal')
+                
+                %fix Y axis (geometry)
+                set(ax,'YTickMode','manual')
+                Ytick_fixed=get(ax,'Ytick')*pipe_unit_length(plotCntr);
+                set(ax,'YTickLabels',Ytick_fixed);
+                
+                
 
         %-------------------------------------------------------------------------------------------------
-        %        PLOTTING COMMAND:  surf(Time,pipeLength,p{plot_counter,2})
-        %                           imagesc(ax,Time,pipeLength,tempg{plot_counter,2}); colorbar(ax);
+        %        PLOTTING COMMAND:  surf(Time,pipeLength,p{plotCntr,2})
+        %                           imagesc(ax,Time,pipeLength,tempg{plotCntr,2}); colorbar(ax);
         %                           set(ax,'YDir','normal')
         %-------------------------------------------------------------------------------------------------
                 % print to file
@@ -690,49 +776,110 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
 %                     catch ME
 %                         rethrow(ME)
 %                     end
-
+                %-------------------------------------------------------------
                 %print avg NC fraction vs time for every file
-                if strcmp(printed_parameter,'quala')
-                    quala_size=size(current_var);
-
-                    % since for every time step has n columns
-                    % n=horz_tube_amount(plot_counter)
-                    % it has to be summed and averaged for those n columns for
-                    % each time step
-                    % number of time steps is horizontal length of data matrix
-                    % divided by columns number
-                    for quala_counter=1:quala_size(2)/horz_tube_amount(plot_counter)
-                        quala_sum=0;
-                        % the second for loop sums over all the columns
-                        % belonging to a single time step (starting at last)
-                        for horz_cnt=1:horz_tube_amount(plot_counter)
-                            summing_cnt=quala_counter*horz_tube_amount(plot_counter)-(horz_tube_amount(plot_counter)-horz_cnt);
-                            quala_sum=quala_sum+sum(current_var(:,summing_cnt));
-    %                         if quala_counter==1;
-    %                             summing_cnt
-    %                         end
-                        end
-                        quala_avg(quala_counter)=quala_sum/(horz_tube_amount(plot_counter)*quala_size(1));
-                    end
-
-                    plot(ax,Time_mat_cell{plot_counter},quala_avg)
-                    xlabel(ax,'Time [s]')
-                    ylabel(ax,'Primary side avg NC quality')
-                    set(ax,'YDir','normal')
-                    path_print=[pathPlots{plot_counter},'\quala_avg_',current_file_name_char];
-                    saveas(fx,path_print,'png')
-                    cla(ax,'reset')
-
-                end
-
+%                 if strcmp(printed_parameter,'quala')
+%                     quala_size=size(current_var);
+% 
+%                     % since for every time step has n columns
+%                     % n=horz_tube_amount(plotCntr)
+%                     % it has to be summed and averaged for those n columns for
+%                     % each time step
+%                     % number of time steps is horizontal length of data matrix
+%                     % divided by columns number
+%                     for quala_counter=1:quala_size(2)/horz_tube_amount(plotCntr)
+%                         quala_sum=0;
+%                         % the second for loop sums over all the columns
+%                         % belonging to a single time step (starting at last)
+%                         for horz_cnt=1:horz_tube_amount(plotCntr)
+%                             summing_cnt=quala_counter*horz_tube_amount(plotCntr)-(horz_tube_amount(plotCntr)-horz_cnt);
+%                             quala_sum=quala_sum+sum(current_var(:,summing_cnt));
+%     %                         if quala_counter==1;
+%     %                             summing_cnt
+%     %                         end
+%                         end
+%                         quala_avg(quala_counter)=quala_sum/(horz_tube_amount(plotCntr)*quala_size(1));
+%                     end
+% 
+%                     plot(ax,Time_mat_cell{plotCntr},quala_avg)
+%                     xlabel(ax,'Time [s]')
+%                     ylabel(ax,'Primary side avg NC quality')
+%                     set(ax,'YDir','normal')
+%                     path_print=[pathPlots{plotCntr},'\quala_avg_',current_file_name_char];
+%                     saveas(fx,path_print,'png')
+%                     if saveAsFig
+%                         saveas(fx,path_print,'fig')
+%                     end
+%                     cla(ax,'reset')
+%                     
+%                     %store for matlab
+%                     expCmpExt(plotCntr).avgNcQual.var=quala_avg;
+%                     if numel(quala_avg)>10
+%                         expCmpExt(plotCntr).avgNcQual.value=mean(quala_avg(end-10:end));
+%                     else
+%                         expCmpExt(plotCntr).avgNcQual.value=mean(quala_avg);
+%                     end
+% 
+%                 end
+%                 
+%                 %-------------------------------------------------------------------
+%                    %print avg gas density
+%                 if strcmp(printed_parameter,'rhog')
+%                     rhog_size=size(current_var);
+% 
+%                     % since for every time step has n columns
+%                     % n=horz_tube_amount(plotCntr)
+%                     % it has to be summed and averaged for those n columns for
+%                     % each time step
+%                     % number of time steps is horizontal length of data matrix
+%                     % divided by columns number
+%                     for rhog_counter=1:rhog_size(2)/horz_tube_amount(plotCntr)
+%                         rhog_sum=0;
+%                         % the second for loop sums over all the columns
+%                         % belonging to a single time step (starting at last)
+%                         for horz_cnt=1:horz_tube_amount(plotCntr)
+%                             summing_cnt=rhog_counter*horz_tube_amount(plotCntr)-(horz_tube_amount(plotCntr)-horz_cnt);
+%                             rhog_sum=rhog_sum+sum(current_var(:,summing_cnt));
+%     %                         if quala_counter==1;
+%     %                             summing_cnt
+%     %                         end
+%                         end
+%                         rhog_avg(rhog_counter)=rhog_sum/(horz_tube_amount(plotCntr)*rhog_size(1));
+%                     end
+% 
+%                     plot(ax,Time_mat_cell{plotCntr},rhog_avg)
+%                     xlabel(ax,'Time [s]')
+%                     ylabel(ax,'Primary side avg gas density [kg/m^3]')
+%                     set(ax,'YDir','normal')
+%                     path_print=[pathPlots{plotCntr},'\rhog_avg_',current_file_name_char];
+%                     saveas(fx,path_print,'png')
+%                     if saveAsFig
+%                         saveas(fx,path_print,'fig')
+%                     end
+%                     cla(ax,'reset')
+%                     
+%                     %store for matlab
+%                     expCmpExt(plotCntr).rhogAvg.var=rhog_avg;
+%                     if numel(rhog_avg)>10
+%                         expCmpExt(plotCntr).rhogAvg.value=mean(rhog_avg(end-10:end));
+%                     else
+%                         expCmpExt(plotCntr).rhogAvg.value=mean(rhog_avg);
+%                     end
+% 
+%                     
+%                   
+%                 end
+                
+                
+                %--------------------------------------------------------------------
                 %calculate and print integral vapgen vs time for every file
                 %(only in test tube)
                  %print avg NC fraction vs time for every file
                 if strcmp(printed_parameter,'vapgen')
                     vapgen_size=size(current_var);
                     try
-                        inntube_vol=vvol_horztube{plot_counter,2}(1,1);
-                        annulus_vol=vvol_horztube{plot_counter,2}(1,2);
+                        inntube_vol=vvol_annulus{plotCntr,2}(1,1);
+                        annulus_vol=vvol_annulus{plotCntr,2}(1,2);
                     catch
                         inntube_vol=6.2832e-6;
                         annulus_vol=1.885e-5;
@@ -740,17 +887,17 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
                     volume_array=[inntube_vol annulus_vol];   % volumes of inner tube sections and annulus section - necessary to calculate kg/s from kg/(m3*s)
 
                     % since for every time step has n columns
-                    % n=horz_tube_amount(plot_counter)
+                    % n=horz_tube_amount(plotCntr)
                     % it has to be summed and averaged for those n columns for
                     % each time step
                     % number of time steps is horizontal length of data matrix
                     % divided by columns number
-                   for vapgen_sum_counter=1:vapgen_size(2)/horz_tube_amount(plot_counter)
+                   for vapgen_sum_counter=1:vapgen_size(2)/horz_tube_amount(plotCntr)
                         vapgen_sum_tmp=0;
                         % the second for loop sums over all the columns
                         % belonging to a single time step (starting at last)
-                        for horz_cnt=1:horz_tube_amount(plot_counter)
-                            vapgen_summing_cnt=vapgen_sum_counter*horz_tube_amount(plot_counter)-(horz_tube_amount(plot_counter)-horz_cnt);
+                        for horz_cnt=1:horz_tube_amount(plotCntr)
+                            vapgen_summing_cnt=vapgen_sum_counter*horz_tube_amount(plotCntr)-(horz_tube_amount(plotCntr)-horz_cnt);
                             vapgen_sum_tmp=vapgen_sum_tmp+sum(current_var(:,vapgen_summing_cnt))*volume_array(horz_cnt);
                         end
                         % 3.77e-04 is tube volume in m3, and since vapgen is in
@@ -759,17 +906,181 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
                         vapgen_sum(vapgen_sum_counter)=vapgen_sum_tmp;
                    end
 
-                    condflux{plot_counter}=vapgen_sum;
+                    condflux{plotCntr}=vapgen_sum;
 
                 end
 
             end
-%             plot_counter=plot_counter+1;
+%             plotCntr=plotCntr+1;
 %             end
         end
     end
+    %% calculate average NC density
+    disp('Calculating NC average mass')
     
-    %plot mass balance
+    for NCfileCnt=1:numel(steam_evap_flow_boiler)  
+        
+        % rhogCurr=rhog_annulus{NCcnt,2};
+        % rhoCurr=rho_annulus{NCcnt,2};
+        % vvolCurr=vvol_annulus{NCcnt,2};
+        % voidgCurr=voidg_annulus{NCcnt,2};
+
+        % tested with code below
+        % figure
+        % plot(tmassvCurr(:,end).*qualsCurr(:,end).*qualaCurr(:,end),'o')
+        % hold on
+        % plot(rhogCurr(:,end).*vvolCurr(:,end).*voidgCurr(:,end).*qualaCurr(:,end),'x')
+        
+        %clear variables
+        NCsumAnnulus=[];
+        NCsumColumn=[];
+        NCsumTotal=[];
+
+        %and gas overall
+        GasSumAnnulus=[];
+        GasSumColumn=[];
+        GasSumTotal=[];
+
+        %and all mass
+        MassAnnulus=[];
+        MassColumn=[];
+        MassTotal=[];
+
+        %extract relevant data
+        qualaCurrColumn=quala{NCfileCnt,2};
+        qualsCurrColumn=quals{NCfileCnt,2};
+        tmassvCurrColumn=tmassv{NCfileCnt,2};  
+        massErrCurr=emass_mat_cell{NCfileCnt};
+          
+        if horz_tube_amount(NCfileCnt)>1
+            qualaCurrAnnulus=quala_annulus{NCfileCnt,2};
+            qualsCurrAnnulus=quals_annulus{NCfileCnt,2};
+            tmassvCurrAnnulus=tmassv_annulus{NCfileCnt,2};
+        end
+            %sum in the test tube for every timestep
+            varSize=size(qualaCurrColumn);
+        for TstepCtr=1:varSize(2)
+            %zero the temp vars
+            massAnnulusTemp=0;
+            massColumnTemp=0;
+            
+            GasMassAnnulusTemp=0;
+            GasMassColumnTemp=0;
+            
+            NCsumAnnulusTemp=0;
+            NCsumColumnTemp=0;
+
+            % the second for loop sums over all the volume in test tube
+            % - inner column and condensing annulus
+            % belonging to a single time step (starting at last)
+            if horz_tube_amount(NCfileCnt)>1
+                annuCtr=TstepCtr*2;
+                massAnnulusTemp=massAnnulusTemp+sum(tmassvCurrAnnulus(:,annuCtr));
+                GasMassAnnulusTemp=GasMassAnnulusTemp+sum(tmassvCurrAnnulus(:,annuCtr).*qualsCurrAnnulus(:,annuCtr));
+                NCsumAnnulusTemp=NCsumAnnulusTemp+sum(tmassvCurrAnnulus(:,annuCtr).*qualsCurrAnnulus(:,annuCtr).*qualaCurrAnnulus(:,annuCtr));            
+            end
+            %this counts masses in central column and heater tank
+
+            massColumnTemp=sum(tmassvCurrColumn(:,TstepCtr));
+            GasMassColumnTemp=sum(tmassvCurrColumn(:,TstepCtr).*qualsCurrColumn(:,TstepCtr));
+            NCsumColumnTemp=sum(tmassvCurrColumn(:,TstepCtr).*qualsCurrColumn(:,TstepCtr).*qualaCurrColumn(:,TstepCtr));
+
+            %and gets total sum for NC
+            NCsumAnnulus(TstepCtr)=NCsumAnnulusTemp;
+            NCsumColumn(TstepCtr)=NCsumColumnTemp;
+            NCsumTotal(TstepCtr)=NCsumAnnulusTemp+NCsumColumnTemp;
+
+            %and gas overall
+            GasSumAnnulus(TstepCtr)=GasMassAnnulusTemp;
+            GasSumColumn(TstepCtr)=GasMassColumnTemp;
+            GasSumTotal(TstepCtr)=GasMassAnnulusTemp+GasMassColumnTemp;
+
+            %and all mass
+            MassAnnulus(TstepCtr)=massAnnulusTemp;
+            MassColumn(TstepCtr)=massColumnTemp;
+            MassTotal(TstepCtr)=massAnnulusTemp+massColumnTemp;
+
+        end
+        
+        currTime=Time_mat_cell{NCfileCnt};
+        %plotting
+        fx2=figure('visible','off');
+        subplot(3,1,1);
+        hold on
+        plot(currTime,NCsumAnnulus)
+        plot(currTime,NCsumColumn)
+        plot(currTime,NCsumTotal)
+        legend('Annulus','Column','Total','Location','eastoutside')
+        ylabel('NC [kg]')
+        subplot(3,1,2)
+        hold on
+        plot(currTime,GasSumAnnulus)
+        plot(currTime,GasSumColumn)
+        plot(currTime,GasSumTotal)
+        legend('Annulus','Column','Total','Location','eastoutside')
+        ylabel('Gas [kg]')
+        subplot(3,1,3)
+        hold on
+        plot(currTime,MassAnnulus)
+        plot(currTime,MassColumn)
+        plot(currTime,MassTotal)
+        xlabel('Time [s]')
+        legend('Annulus','Column','Total','Location','eastoutside')
+        ylabel('Mass [kg]')
+        
+        fileName=quala{NCfileCnt,1};
+        path_print=[pathPlots{NCfileCnt},'\inventory_',fileName];
+        saveas(fx2,path_print,'png')
+        if saveAsFig
+            saveas(fx2,path_print,'fig')
+        end
+        
+        expCmpExt(NCfileCnt).GasMass.var=GasSumTotal;
+        expCmpExt(NCfileCnt).NCMass.var=NCsumTotal;
+        expCmpExt(NCfileCnt).AllMass.var=MassTotal;
+        
+        varSize=numel(expCmpExt(NCfileCnt).NCMass.var);
+        if varSize>10
+            endDist=10;
+        else
+            endDist=varSize-1;
+        end
+        expCmpExt(NCfileCnt).GasMass.value=mean(expCmpExt(NCfileCnt).GasMass.var(end-endDist:end));
+        expCmpExt(NCfileCnt).NCMass.value=mean(expCmpExt(NCfileCnt).NCMass.var(end-endDist:end));
+        expCmpExt(NCfileCnt).AllMass.value=mean(expCmpExt(NCfileCnt).AllMass.var(end-endDist:end));
+        
+        expCmpExt(NCfileCnt).N2moles.var=expCmpExt(NCfileCnt).NCMass.var.*(1000/28.0134);
+        expCmpExt(NCfileCnt).N2moles.value=expCmpExt(NCfileCnt).NCMass.value*1000/28.0134; %assuming pure N2
+
+%         try
+%             currRhoG.var=expCmpExt(NCfileCnt).rhogAvg.var;
+%             currRhoG.value=expCmpExt(NCfileCnt).rhogAvg.value;
+%             currNCquala.var=expCmpExt(NCfileCnt).avgNcQual.var;
+%             currNCquala.value=expCmpExt(NCfileCnt).avgNcQual.value;
+%             expCmpExt(NCfileCnt).NCdens.var=currRhoG.var.*currNCquala.var;
+%             expCmpExt(NCfileCnt).NCdens.value=currRhoG.value.*currNCquala.value;
+% 
+%             %plot
+%             plot(ax,Time_mat_cell{NCfileCnt},expCmpExt(NCfileCnt).NCdens.var)
+%             xlabel(ax,'Time [s]')
+%             ylabel(ax,'NC average density [kg/m3]')
+%             title(ax,['NC gas average density in tube'])
+%             %         set(gca,'YDir','normal')
+%             %save
+%             path_print=[pathPlots{NCfileCnt},'\NCdensAVG_',current_file_name_char];
+%             saveas(fx,path_print,'png')
+%             if saveAsFig
+%                 saveas(fx,path_print,'fig')
+%             end
+% 
+%             cla(ax,'reset')
+%         catch ME
+%             disp(ME)
+%         end
+        %       NC_dens_avg=rhog_avg*
+    end
+      
+    %% plot mass balance
     disp('Plotting fixed mass fluxes on one graph')
     
     for mb=1:numel(steam_evap_flow_boiler)  
@@ -813,9 +1124,28 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
         %save
         path_print=[pathPlots{mb},'\mass_fluxes_',current_file_name_char];
         saveas(fx,path_print,'png')
+        if saveAsFig
+            saveas(fx,path_print,'fig')
+        end
 
         cla(ax,'reset')
-
+        
+        %store for matlab
+        expCmpExt(mb).steamMflowEvap.var=steam_evap_flow_boiler{mb};
+        if numel(steam_evap_flow_boiler{mb})>10
+            expCmpExt(mb).steamMflowEvap.value=mean(steam_evap_flow_boiler{mb}(end-10:end));
+        else
+            expCmpExt(mb).steamMflowEvap.value=mean(steam_evap_flow_boiler{mb});
+        end
+                       
+        expCmpExt(mb).steamMflowCond.var=-condflux{mb};
+        
+        if numel(condflux{mb})>10
+            expCmpExt(mb).steamMflowCond.value=mean(-condflux{mb}(end-10:end));
+        else
+            expCmpExt(mb).steamMflowCond.value=mean(-condflux{mb});
+        end
+      
         %--------------------------
         %extra plot - total vapgen vs delta P
         
@@ -825,32 +1155,38 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
         ylabel(ax,'Pressure change [bar]')
         yyaxis (ax,'right')
         plot(ax,Time_mat_cell{mb},vapgenIntegral)
-        ylabel(ax,'Integral mass balance [ks/s]')
+        ylabel(ax,'Integral mass balance [kg/s]')
         xlabel(ax,'Time [s]')
         legend(ax,'Press diff','Integral mass balance')
 %         set(ax,'YDir','normal')
         
         % align zero for left and right
-        yyaxis(ax,'right'); ylimr = get(ax,'Ylim');ratio = ylimr(1)/ylimr(2);
-        yyaxis(ax,'left'); yliml = get(ax,'Ylim');
-        if ~(yliml(1)==0&&ylimr(1)==0)
-            if yliml(2)*ratio<yliml(1)
-                set(ax,'Ylim',[yliml(2)*ratio yliml(2)])
-            else
-                set(ax,'Ylim',[yliml(1) yliml(1)/ratio])
+        try
+            yyaxis(ax,'right'); ylimr = get(ax,'Ylim');ratio = ylimr(1)/ylimr(2);
+            yyaxis(ax,'left'); yliml = get(ax,'Ylim');
+            if ~(yliml(1)==0&&ylimr(1)==0)
+                if yliml(2)*ratio<yliml(1)
+                    set(ax,'Ylim',[yliml(2)*ratio yliml(2)])
+                else
+                    set(ax,'Ylim',[yliml(1) yliml(1)/ratio])
+                end
             end
+        catch
         end
         
         %--------------------------
         %save
         path_print=[pathPlots{mb},'\integralVapgen_pDiff_',current_file_name_char];
         saveas(fx,path_print,'png')
+        if saveAsFig
+            saveas(fx,path_print,'fig')
+        end
         
         cla(ax,'reset')
         
     end
     
-    %plot heat balance
+    %% plot heat balance
     
     disp('Plotting fixed heat balance')
     
@@ -883,13 +1219,20 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
         set(ax,'YDir','normal')
         path_print=[pathPlots{mb},'\heat_balance_',current_file_name_char];
         saveas(fx,path_print,'png')
+        if saveAsFig
+            saveas(fx,path_print,'fig')
+        end
 
         cla(ax,'reset')
+        
+        %save extended experimental values matrix for further comparison with experiments
+        curr_expDat=expCmpExt(mb);
+        save([directory{mb},'\',current_file_name_char,'_extended_for_Matlab'],'curr_expDat')
 
     end
    
     
-    %close invisible figure
+    %% close invisible figure and finish
     close(fx)
     disp('*********************************************')
     disp('Plotting finished')

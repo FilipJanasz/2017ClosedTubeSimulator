@@ -1,4 +1,5 @@
 function varargout = RelapGUI(varargin)
+
     % RELAPGUI MATLAB code for RelapGUI.fig
     %      RELAPGUI, by itself, creates a new RELAPGUI or raises the existing
     %      singleton*.
@@ -55,7 +56,32 @@ function RelapGUI_OpeningFcn(hObject, eventdata, handles, varargin)
     handles.output = hObject;
         
     %read default code directory
-    handles.dirCode='D:\Data\Relap5\Relap5_code\';
+    try
+        thisScriptPath=varargin{1};
+        fid=fopen([thisScriptPath,'\RelapCodePath.txt']);
+        relapCodePath = fgetl(fid);
+        fclose(fid)
+    catch
+        relapCodePath = '0';
+    end
+    
+    update2Flag=0;
+    
+    while ~exist([relapCodePath,'\Relap.exe'],'file')
+        ~exist([relapCodePath,'\Relap.exe'],'file')
+%         waitfor(msgbox('Relap5.exe not found. Please provide path to folder with Relap5.exe'));
+        relapCodePath=uigetdir;
+        ~exist([relapCodePath,'\Relap.exe'],'file')
+        update2Flag=1;
+    end
+    
+    if update2Flag
+        fid = fopen([thisScriptPath,'\RelapCodePath.txt'],'w');
+        fprintf(fid,'%s',relapCodePath);
+        fclose(fid);
+    end
+    
+    handles.dirCode=relapCodePath;
     
     %update handles structure
     guidata(hObject, handles)
@@ -123,7 +149,7 @@ function genInput_Callback(hObject, eventdata, handles) %#ok<DEFNU>
 %       default_dir=cell2mat(tempDir);
 %         singPos=strfind(tempDir{1},'\');
 %         default_dir=tempDir{1}(1:singPos(end));
-    default_dir=tempDir{1};
+%     default_dir=tempDir{1};
     handles.file_path.String=default_dir;
     
     %update handles structure
@@ -171,7 +197,6 @@ function plotResults_Callback(hObject, eventdata, handles) %#ok<DEFNU>
     singPos=strfind(tempDir{1},'\');
     default_dir=tempDir{1}(1:singPos(end));
     handles.file_path.String=default_dir;
-        
     %update handles structure
     guidata(hObject, handles)
     

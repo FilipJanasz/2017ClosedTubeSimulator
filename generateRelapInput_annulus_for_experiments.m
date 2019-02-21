@@ -7,7 +7,7 @@ function directory=generateRelapInput_annulus_for_experiments(inputs,input_type,
 
             Pps=str2double(get(inputs.Pps,'String'));         %Initial pressure [Bar]
             NC=str2double(get(inputs.NC,'String'));               %Non condensable mole fr (quality in relap)
-            Helium=str2double(get(inputs.Helium,'String'));           %Mole fraction of Helium in NC mixture
+            Helium=str2double(get(inputs.Helium,'String'));       %Mole fraction of Helium in NC mixture
 
             %Secondary side - initial and operating conditions ********************************************************************************
             Pss=str2double(get(inputs.Pss,'String'));
@@ -84,7 +84,7 @@ function directory=generateRelapInput_annulus_for_experiments(inputs,input_type,
         %Condensing tube geometry
         condenser_length=1.2;           % [m]
         adiabatic_part_of_condenser=0.4;% [m]
-        tube_inner_diam=0.02;          % [m]
+        tube_inner_diam=0.02;           % [m]
         tube_outer_diam=0.03;           % [m]
         cond_annulus_thick=0.002;       % [m]  %condensing pipe is subdivided into inner pipe element and outer annulus
 
@@ -247,6 +247,7 @@ function directory=generateRelapInput_annulus_for_experiments(inputs,input_type,
         %get values for current loop iteration
         curr_Pps=Pps(inputDecks_counter);
         curr_NC=NC(inputDecks_counter); % sum of N2 init and He init mole fractions
+%         curr_NC=0;
         curr_Helium=Helium(inputDecks_counter); % He init mole fraction
         curr_Tss=Tss(inputDecks_counter)+273.15;
         curr_Pss=Pss(inputDecks_counter);
@@ -279,7 +280,7 @@ function directory=generateRelapInput_annulus_for_experiments(inputs,input_type,
 
         %NC masses
         avg_molar_mass_mixture=h2o_mole_fraction*molar_mass_h2o+Helium_mole_fraction*molar_mass_He+Nitrogen_mole_fraction*molar_mass_N2;
-        MASS_fraction_h2o=molar_mass_h2o/avg_molar_mass_mixture*h2o_mole_fraction;
+        MASS_fraction_h2o=molar_mass_h2o/avg_molar_mass_mixture*h2o_mole_fraction;    %wi = xi*(Mi/M), check wikipedia on mole fracion to mass fraction conversion
         MASS_fraction_Nitrogen=molar_mass_N2/avg_molar_mass_mixture*Nitrogen_mole_fraction;
         MASS_fraction_Helium=molar_mass_He/avg_molar_mass_mixture*Helium_mole_fraction;
         MASS_fraction_NC_total=MASS_fraction_Nitrogen+MASS_fraction_Helium;
