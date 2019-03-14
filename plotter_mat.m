@@ -998,21 +998,21 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
 %             NCsumColumn(TstepCtr)=NCsumColumnTemp;
             NCsumSG(TstepCtr)=NCsumSGTemp;
             NCsumTube(TstepCtr)=NCsumTubeTemp;
-            NCsumTotal(TstepCtr)=NCsumAnnulusTemp+NCsumColumnTemp;
+            NCsumTotal(TstepCtr)=NCsumAnnulusTemp+NCsumSGTemp+NCsumTubeTemp;
 
             %and gas overall
             GasSumAnnulus(TstepCtr)=GasMassAnnulusTemp;
             GasSumSG(TstepCtr)=GasMassSGTemp;
             GasSumTube(TstepCtr)=GasMassTubeTemp;
 %             GasSumColumn(TstepCtr)=GasMassColumnTemp;
-            GasSumTotal(TstepCtr)=GasMassAnnulusTemp+GasMassColumnTemp;
+            GasSumTotal(TstepCtr)=GasMassAnnulusTemp+GasMassSGTemp+GasMassTubeTemp;
 
             %and all mass
             MassAnnulus(TstepCtr)=massAnnulusTemp;
             MassSG(TstepCtr)=massSGTemp;
             MassTube(TstepCtr)=massTubeTemp;
 %             MassColumn(TstepCtr)=massColumnTemp;
-            MassTotal(TstepCtr)=massAnnulusTemp+massColumnTemp;
+            MassTotal(TstepCtr)=massAnnulusTemp+massSGTemp+massTubeTemp;
 
         end
         
