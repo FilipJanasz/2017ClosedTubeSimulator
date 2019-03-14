@@ -23,7 +23,7 @@ function varargout = RelapGUI(varargin)
 
     % Edit the above text to modify the response to help RelapGUI
 
-    % Last Modified by GUIDE v2.5 07-Sep-2017 18:06:54
+    % Last Modified by GUIDE v2.5 10-Mar-2019 20:49:40
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -110,6 +110,9 @@ function genInput_Callback(hObject, eventdata, handles) %#ok<DEFNU>
     %check if the input is manual or automatic (from experiment)
     input_type=get(handles.inputManual,'Value');
     
+    %what about NC gases?
+    NCmodelFlag=handles.disableNC_box.Value;
+    
     %get calculation parameters
     handles.mindt=get(handles.mindtBox,'String');
     handles.initial_maxdt=get(handles.initial_maxdtBox,'String');
@@ -143,7 +146,7 @@ function genInput_Callback(hObject, eventdata, handles) %#ok<DEFNU>
     end
 
     %generate input decks
-    tempDir=generateRelapInput_annulus_for_experiments(handles,input_type,default_dir);
+    tempDir=generateRelapInput_annulus_for_experiments(handles,input_type,default_dir,NCmodelFlag);
     
     %update directory if changed
 %       default_dir=cell2mat(tempDir);
@@ -364,12 +367,12 @@ function sequence_Callback(hObject, eventdata, handles) %#ok<DEFNU>
         plotter_mat(default_dir,1,first);
         
         %update directory if changed
-        if first
-%             default_dir=cell2mat(tempDir);
-            singPos=strfind(tempDir{1},'\');
-            default_dir=tempDir{1}(1:singPos(end));
-            handles.file_path.String=default_dir;
-        end
+%         if first
+% %             default_dir=cell2mat(tempDir);
+%             singPos=strfind(tempDir{1},'\');
+%             default_dir=tempDir{1}(1:singPos(end));
+%             handles.file_path.String=default_dir;
+%         end
         
         disp('-------------------------------------------')
     end
@@ -807,3 +810,12 @@ function buttonFb111to110_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to buttonFb111to110 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes on button press in disableNC_box.
+function disableNC_box_Callback(hObject, eventdata, handles)
+% hObject    handle to disableNC_box (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of disableNC_box

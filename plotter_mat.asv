@@ -981,37 +981,33 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
             end
             %this counts masses in central column and heater tank
 
-%             massColumnTemp=sum(tmassvCurrColumn(:,TstepCtr));
+            massColumnTemp=sum(tmassvCurrColumn(:,TstepCtr));
             massSGTemp=sum(tmassvCurrColumn(1:8,TstepCtr));
             massTubeTemp=sum(tmassvCurrColumn(9:end:8,TstepCtr));
 
-%             GasMassColumnTemp=sum(tmassvCurrColumn(:,TstepCtr).*qualsCurrColumn(:,TstepCtr));
+            GasMassColumnTemp=sum(tmassvCurrColumn(:,TstepCtr).*qualsCurrColumn(:,TstepCtr));
             GasMassSGTemp=sum(tmassvCurrColumn(1:8,TstepCtr).*qualsCurrColumn(1:8,TstepCtr));
             GasMassTubeTemp=sum(tmassvCurrColumn(9:end,TstepCtr).*qualsCurrColumn(9:end,TstepCtr));
             
-%             NCsumColumnTemp=sum(tmassvCurrColumn(:,TstepCtr).*qualsCurrColumn(:,TstepCtr).*qualaCurrColumn(:,TstepCtr));
+            NCsumColumnTemp=sum(tmassvCurrColumn(:,TstepCtr).*qualsCurrColumn(:,TstepCtr).*qualaCurrColumn(:,TstepCtr));
             NCsumSGTemp=sum(tmassvCurrColumn(1:8,TstepCtr).*qualsCurrColumn(1:8,TstepCtr).*qualaCurrColumn(1:8,TstepCtr));
             NCsumTubeTemp=sum(tmassvCurrColumn(9,TstepCtr).*qualsCurrColumn(9,TstepCtr).*qualaCurrColumn(9,TstepCtr));
 
             %and gets total sum for NC
             NCsumAnnulus(TstepCtr)=NCsumAnnulusTemp;
-%             NCsumColumn(TstepCtr)=NCsumColumnTemp;
+            NCsumColumn(TstepCtr)=NCsumColumnTemp;
             NCsumSG(TstepCtr)=NCsumSGTemp;
-            NCsumTube(TstepCtr)=NCsumTubeTemp;
+            NCsumTube(TstepCtr)=NCsumSGTemp;
             NCsumTotal(TstepCtr)=NCsumAnnulusTemp+NCsumColumnTemp;
 
             %and gas overall
             GasSumAnnulus(TstepCtr)=GasMassAnnulusTemp;
-            GasSumSG(TstepCtr)=GasMassSGTemp;
-            GasSumTube(TstepCtr)=GasMassTubeTemp;
-%             GasSumColumn(TstepCtr)=GasMassColumnTemp;
+            GasSumColumn(TstepCtr)=GasMassColumnTemp;
             GasSumTotal(TstepCtr)=GasMassAnnulusTemp+GasMassColumnTemp;
 
             %and all mass
             MassAnnulus(TstepCtr)=massAnnulusTemp;
-            MassSG(TstepCtr)=massSGTemp;
-            MassTube(TstepCtr)=massTubeTemp;
-%             MassColumn(TstepCtr)=massColumnTemp;
+            MassColumn(TstepCtr)=massColumnTemp;
             MassTotal(TstepCtr)=massAnnulusTemp+massColumnTemp;
 
         end
@@ -1022,27 +1018,24 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
         subplot(3,1,1);
         hold on
         plot(currTime,NCsumAnnulus)
-        plot(currTime,NCsumTube)
-        plot(currTime,NCsumSG)
+        plot(currTime,NCsumColumn)
         plot(currTime,NCsumTotal)
-        legend('Annulus','Tube','SG','Total','Location','eastoutside')
+        legend('Annulus','Column','Total','Location','eastoutside')
         ylabel('NC [kg]')
         subplot(3,1,2)
         hold on
         plot(currTime,GasSumAnnulus)
-        plot(currTime,GasSumTube)
-        plot(currTime,GasSumSG)
+        plot(currTime,GasSumColumn)
         plot(currTime,GasSumTotal)
-        legend('Annulus','Tube','SG','Total','Location','eastoutside')
+        legend('Annulus','Column','Total','Location','eastoutside')
         ylabel('Gas [kg]')
         subplot(3,1,3)
         hold on
         plot(currTime,MassAnnulus)
-        plot(currTime,MassTube)
-        plot(currTime,MassSG)
+        plot(currTime,MassColumn)
         plot(currTime,MassTotal)
         xlabel('Time [s]')
-        legend('Annulus','Tube','SG','Total','Location','eastoutside')
+        legend('Annulus','Column','Total','Location','eastoutside')
         ylabel('Mass [kg]')
         
         fileName=quala{NCfileCnt,1};

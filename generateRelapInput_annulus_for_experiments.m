@@ -1,4 +1,4 @@
-function directory=generateRelapInput_annulus_for_experiments(inputs,input_type,file_dir)
+function directory=generateRelapInput_annulus_for_experiments(inputs,input_type,file_dir,NCmodelFlag)
     %% INPUT----------------------------------------------------
         
         if input_type
@@ -246,8 +246,12 @@ function directory=generateRelapInput_annulus_for_experiments(inputs,input_type,
         
         %get values for current loop iteration
         curr_Pps=Pps(inputDecks_counter);
-        curr_NC=NC(inputDecks_counter); % sum of N2 init and He init mole fractions
-%         curr_NC=0;
+        if ~NCmodelFlag
+            curr_NC=NC(inputDecks_counter); % sum of N2 init and He init mole fractions
+        else
+            curr_NC=0;
+        end
+        
         curr_Helium=Helium(inputDecks_counter); % He init mole fraction
         curr_Tss=Tss(inputDecks_counter)+273.15;
         curr_Pss=Pss(inputDecks_counter);
@@ -427,7 +431,7 @@ function directory=generateRelapInput_annulus_for_experiments(inputs,input_type,
         fprintf(fid,'* Restart-Plot Control Card\n'); 
         fprintf(fid,'104 ncmpress\n'); 
         fprintf(fid,'*================================================================\n'); 
-        if ~curr_NC== 0
+        if ~curr_NC==0
             fprintf(fid,'*define non condensable gases\n');
            fprintf(fid,'110 helium nitrogen\n');
 %             fprintf(fid,'110 hydrogen nitrogen\n');

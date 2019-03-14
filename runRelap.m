@@ -1,8 +1,9 @@
 function directory=runRelap(dirCode,default_dir,starting_file,execution_time,starting_batch,batch_size,sequence,firstInSeq)
     
     %set license as enviromental variable
+    dirCode=[dirCode,'\'];
     try
-        lic_file=fopen([dirCode,'\license.txt']);
+        lic_file=fopen([dirCode,'license.txt']);
     catch
         disp('Relap license not found - verify path to RELAP directory')
     end
