@@ -45,6 +45,7 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
     
     %open figure used for plotting
     fx=figure('visible','off');
+    
     ax=axes; % create axes object to which code will plot
     colormap(fx,jet)
     
@@ -919,7 +920,6 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
     disp('Calculating NC average mass')
     
     for NCfileCnt=1:numel(steam_evap_flow_boiler)  
-        
         % rhogCurr=rhog_annulus{NCcnt,2};
         % rhoCurr=rho_annulus{NCcnt,2};
         % vvolCurr=vvol_annulus{NCcnt,2};
@@ -933,17 +933,20 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
         
         %clear variables
         NCsumAnnulus=[];
-        NCsumColumn=[];
+        NCsumTube=[];
+        NCsumSG=[];
         NCsumTotal=[];
 
         %and gas overall
         GasSumAnnulus=[];
-        GasSumColumn=[];
+        GasSumTube=[];
+        GasSumSG=[];
         GasSumTotal=[];
 
         %and all mass
         MassAnnulus=[];
-        MassColumn=[];
+        MassTube=[];
+        MassSG=[];
         MassTotal=[];
 
         %extract relevant data
@@ -983,7 +986,7 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
 
 %             massColumnTemp=sum(tmassvCurrColumn(:,TstepCtr));
             massSGTemp=sum(tmassvCurrColumn(1:8,TstepCtr));
-            massTubeTemp=sum(tmassvCurrColumn(9:end:8,TstepCtr));
+            massTubeTemp=sum(tmassvCurrColumn(9:end,TstepCtr));
 
 %             GasMassColumnTemp=sum(tmassvCurrColumn(:,TstepCtr).*qualsCurrColumn(:,TstepCtr));
             GasMassSGTemp=sum(tmassvCurrColumn(1:8,TstepCtr).*qualsCurrColumn(1:8,TstepCtr));
@@ -991,7 +994,7 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
             
 %             NCsumColumnTemp=sum(tmassvCurrColumn(:,TstepCtr).*qualsCurrColumn(:,TstepCtr).*qualaCurrColumn(:,TstepCtr));
             NCsumSGTemp=sum(tmassvCurrColumn(1:8,TstepCtr).*qualsCurrColumn(1:8,TstepCtr).*qualaCurrColumn(1:8,TstepCtr));
-            NCsumTubeTemp=sum(tmassvCurrColumn(9,TstepCtr).*qualsCurrColumn(9,TstepCtr).*qualaCurrColumn(9,TstepCtr));
+            NCsumTubeTemp=sum(tmassvCurrColumn(9:end,TstepCtr).*qualsCurrColumn(9:end,TstepCtr).*qualaCurrColumn(9:end,TstepCtr));
 
             %and gets total sum for NC
             NCsumAnnulus(TstepCtr)=NCsumAnnulusTemp;
@@ -1019,35 +1022,43 @@ function directory=plotter_mat(default_dir,sequence,firstInSeq)
         currTime=Time_mat_cell{NCfileCnt};
         %plotting
         fx2=figure('visible','off');
-        subplot(3,1,1);
+        s1=subplot(3,1,1);
         hold on
         plot(currTime,NCsumAnnulus)
-        plot(currTime,NCsumTube)
+       plot(currTime,NCsumTube)
         plot(currTime,NCsumSG)
         plot(currTime,NCsumTotal)
-        legend('Annulus','Tube','SG','Total','Location','eastoutside')
+%         legend('Annulus','Tube','SG','Total','Location','eastoutside')
         ylabel('NC [kg]')
-        subplot(3,1,2)
+        s2=subplot(3,1,2);
         hold on
         plot(currTime,GasSumAnnulus)
         plot(currTime,GasSumTube)
         plot(currTime,GasSumSG)
         plot(currTime,GasSumTotal)
-        legend('Annulus','Tube','SG','Total','Location','eastoutside')
+%         legend('Annulus','Tube','SG','Total','Location','eastoutside')
         ylabel('Gas [kg]')
-        subplot(3,1,3)
+        s3=subplot(3,1,3);
         hold on
+        yyaxis right
         plot(currTime,MassAnnulus)
         plot(currTime,MassTube)
+        ylabel('Mass [kg]')
+        yyaxis left
         plot(currTime,MassSG)
         plot(currTime,MassTotal)
+%         ylim([min(MassTotal)*0.97 max(MassTotal)*1.03]);
         xlabel('Time [s]')
-        legend('Annulus','Tube','SG','Total','Location','eastoutside')
+        legH=legend('Annulus','Tube','SG','Total','Location','southoutside');
+        legH.Orientation='horizontal';
+        s3.Position=[0.1300 0.1395 0.7750 0.2062];
+        fx2.Position=[295   435   560   520];
         ylabel('Mass [kg]')
         
         fileName=quala{NCfileCnt,1};
         path_print=[pathPlots{NCfileCnt},'\inventory_',fileName];
         saveas(fx2,path_print,'png')
+        print(fx2,path_print,'-dmeta')
         if saveAsFig
             saveas(fx2,path_print,'fig')
         end
